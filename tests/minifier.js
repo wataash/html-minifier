@@ -623,6 +623,30 @@ QUnit.test('collapsing space in conditional comments', function(assert) {
   }), output);
 });
 
+QUnit.test('(bug) CDATA parsed as conditional comments', function(assert) {
+  var input;
+
+  input = '<![CDATA[line 1\nline 2]]>';
+  assert.equal(minify(input), input);
+  assert.equal(minify(input, { removeComments: true }), '');
+  input = '<p><![CDATA[line 1\nline 2]]></p>';
+  assert.equal(minify(input), input);
+  assert.equal(minify(input, { removeComments: true }), '<p></p>');
+
+  input = '<![CDATA[]]>';
+  assert.equal(minify(input), input);
+  assert.equal(minify(input, { removeComments: true }), '');
+
+  // https://github.com/kangax/html-minifier/issues/1161
+  input = '<![CDATA[___]><-___]]>';
+  assert.throws(function() {
+    minify(input);
+  }, '"]>" treated as end instead of "]]>" (bug)');
+  assert.throws(function() {
+    minify(input, { removeComments: true });
+  }, '"]>" treated as end instead of "]]>" (bug)');
+});
+
 QUnit.test('remove comments from scripts', function(assert) {
   var input, output;
 
